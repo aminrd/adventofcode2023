@@ -14,8 +14,11 @@ class Card:
         self.winning = set(map(int, winning.strip().split()))
         self.guess = set(map(int, guess.strip().split()))
 
+    def get_match_cnt(self):
+        return sum(guess in self.winning for guess in self.guess)
+
     def get_points(self):
-        cnt = sum(guess in self.winning for guess in self.guess)
+        cnt = self.get_match_cnt()
         return 0 if cnt == 0 else 2 ** (cnt - 1)
 
 
@@ -23,3 +26,12 @@ cards = [Card(line) for line in lines]
 
 part_one = sum(card.get_points() for card in cards)
 print(f"Part one = {part_one}")
+
+part_two = 0
+weights = [1] * len(cards)
+for i, card in enumerate(cards):
+    for j in range(card.get_match_cnt()):
+        if (i+j+1) < len(cards):
+            weights[i+j+1] += weights[i]
+
+print(f"Part two = {sum(weights)}")
