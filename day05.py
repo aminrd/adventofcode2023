@@ -2,7 +2,7 @@ import bisect
 import math
 from tqdm import tqdm
 
-DEBUG = True
+DEBUG = False
 input_file = "inputs/test.txt" if DEBUG else "./inputs/day05.txt"
 with open(input_file) as f:
     lines = f.readlines()
@@ -50,27 +50,36 @@ class Table:
         self.hash_table[src] = src
         return src
 
-    def get_range_values(self, query_start, query_end, results=[]):
-        if query_start == query_end:
-            single_query = self.get_value_not_optimized(query_start)
+    def get_range_values(self, q_start, q_end, results=None):
+        if results is None:
+            results = []
+
+        if q_start == q_end:
+            single_query = self.get_value_not_optimized(q_start)
             results.append((single_query, single_query))
-            return
+            return results
 
-        if query_start < self.min_possible:
-            results.append((query_start, self.min_possible-1))
-            query_start = self.min_possible
-
-        if query_end > self.max_possible:
-            results.append((self.max_possible+1, query_end))
-            query_end = self.max_possible
-
-        for start, end, dst in self.maps:
-            if end < query_start or query_end < start:
+        ind = 0
+        covered_query = q_start
+        while covered_query < q_end:
+            if ind >= len(self.maps):
+                results.append((covered_query, q_end))
+                covered_query = q_end
                 continue
 
-            s = max(query_start, start)
-            e = min(query_end, end)
-            results.append((s - start + dst, e - start + dst))
+            start, end, dst = self.maps[ind]
+            if end < covered_query:
+                ind += 1
+            elif covered_query < start:
+                results.append((covered_query, start - 1))
+                covered_query = start
+            else:
+                e = min(q_end, end)
+                results.append((covered_query - start + dst, e - start + dst))
+                covered_query = e + 1
+                ind += 1
+
+        return results
 
 
 seeds = list(map(int, lines[0].replace("seeds: ", "").strip().split()))
@@ -102,7 +111,6 @@ while line_index < len(lines):
 
         tables[table_name] = Table(maps, table_name)
 
-
 locations = []
 for seed in seeds:
     query = seed
@@ -113,10 +121,9 @@ for seed in seeds:
 part_one = min(locations)
 print(f"Part one = {part_one}")
 
-
 part_two = math.inf
 for i in range(len(seeds) // 2):
-    queires = [(seeds[2*i], seeds[2*i] + seeds[2*i+1])]
+    queires = [(seeds[2 * i], seeds[2 * i] + seeds[2 * i + 1])]
     for table_name in table_names:
         new_queries = []
         for query_start, query_end in queires:
