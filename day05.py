@@ -1,6 +1,5 @@
 import bisect
 import math
-from tqdm import tqdm
 
 DEBUG = False
 input_file = "inputs/test.txt" if DEBUG else "./inputs/day05.txt"
@@ -21,34 +20,36 @@ class Table:
         self.max_possible = max(e for _, e, _ in self.maps)
 
     def get_value_not_optimized(self, query):
+        if query < self.min_possible or query > self.max_possible:
+            return query
         for start, end, dst in self.maps:
             if start <= query <= end:
                 return (query - start) + dst
         return query
 
-    def get_value(self, src):
+    def get_value(self, query):
+        if query < self.min_possible or query > self.max_possible:
+            return query
+        if query in self.hash_table:
+            return self.hash_table[query]
 
-        if src in self.hash_table:
-            return self.hash_table[src]
-
-        query = (src, math.inf, math.inf)
-        index = bisect.bisect_left(self.maps, query)
+        index = bisect.bisect_left(self.maps, (query, math.inf, math.inf))
 
         if index == 0:
-            self.hash_table[src] = src
-            return src
+            self.hash_table[query] = query
+            return query
         if index == len(self.maps):
             index -= 1
 
         while index >= 0:
             start, end, dst = self.maps[index]
-            if start <= src <= end:
-                self.hash_table[src] = (src - start) + dst
-                return self.hash_table[src]
+            if start <= query <= end:
+                self.hash_table[query] = (query - start) + dst
+                return self.hash_table[query]
             index -= 1
 
-        self.hash_table[src] = src
-        return src
+        self.hash_table[query] = query
+        return query
 
     def get_range_values(self, q_start, q_end, results=None):
         if results is None:
@@ -101,8 +102,8 @@ while line_index < len(lines):
         line_index += 1
         continue
 
-    if any(table_name in line for table_name in table_names):
-        table_name = [table_name for table_name in table_names if table_name in line][0]
+    table_name = next((tname for tname in table_names if tname in line), None)
+    if table_name is not None:
         maps = []
         line_index += 1
         while line_index < len(lines) and len(lines[line_index]) > 0 and lines[line_index][0].isdigit():
