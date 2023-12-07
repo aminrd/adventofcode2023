@@ -23,16 +23,26 @@ mapper2 = {
 # 6 : one pair
 
 cnt_to_type = {
-    (5,) : 1,
+    (5,): 1,
     (4, 1): 2,
-    (3,2): 3,
+    (3, 2): 3,
     (3, 1, 1): 4,
     (2, 2, 1): 5,
     (2, 1, 1, 1): 6,
     (1, 1, 1, 1, 1): 7
 }
 
+
 class HandBase:
+    def __init__(self, cards: str, bid: str, card_mapper: dict):
+        self.cards_main = cards
+        self.bid = int(bid.strip())
+        self.cards = tuple(card_mapper[c] for c in cards.strip())
+        self.type = None
+
+    def get_win(self, rank):
+        return self.bid * rank
+
     def __eq__(self, other):
         return self.cards == other.cards
 
@@ -41,15 +51,16 @@ class HandBase:
         if self.type < other.type: return False
 
         for a, b in zip(self.cards, other.cards):
-            if a < b:   return True
-            elif a > b: return False
+            if a < b:
+                return True
+            elif a > b:
+                return False
         return False
+
 
 class Hand(HandBase):
     def __init__(self, cards: str, bid: str):
-        self.cards_main = cards
-        self.cards = tuple(mapper[c] for c in cards.strip())
-        self.bid = int(bid.strip())
+        super().__init__(cards, bid, mapper)
 
         cnt = [0] * 20
         for c in self.cards:
@@ -57,11 +68,10 @@ class Hand(HandBase):
         cnt = tuple(sorted([count for count in cnt if count != 0], reverse=True))
         self.type = cnt_to_type[cnt]
 
+
 class Hand2(HandBase):
     def __init__(self, cards: str, bid: str):
-        self.cards_main = cards
-        self.cards = tuple(mapper2[c] for c in cards.strip())
-        self.bid = int(bid.strip())
+        super().__init__(cards, bid, mapper2)
 
         cnt = [0] * 20
         for c in self.cards:
@@ -89,11 +99,12 @@ for line in lines:
 
 part_one = 0
 for rank, hand in enumerate(sorted(hands)):
-    part_one += hand.bid * (rank + 1)
+    part_one += hand.get_win(rank + 1)
+
 print(f"Part one = {part_one}")
 
 part_two = 0
 for rank, hand in enumerate(sorted(hands2)):
-    part_two += hand.bid * (rank + 1)
-print(f"Part two = {part_two}")
+    part_two += hand.get_win(rank + 1)
 
+print(f"Part two = {part_two}")
