@@ -22,6 +22,16 @@ mapper2 = {
 # 5 : two pairs
 # 6 : one pair
 
+cnt_to_type = {
+    (5,) : 1,
+    (4, 1): 2,
+    (3,2): 3,
+    (3, 1, 1): 4,
+    (2, 2, 1): 5,
+    (2, 1, 1, 1): 6,
+    (1, 1, 1, 1, 1): 7
+}
+
 class HandBase:
     def __eq__(self, other):
         return self.cards == other.cards
@@ -39,27 +49,18 @@ class Hand(HandBase):
     def __init__(self, cards: str, bid: str):
         self.cards_main = cards
         self.cards = tuple(mapper[c] for c in cards.strip())
-        self.type = None
         self.bid = int(bid.strip())
 
         cnt = [0] * 20
         for c in self.cards:
             cnt[c] += 1
         cnt = tuple(sorted([count for count in cnt if count != 0], reverse=True))
-
-        if cnt == (5,):             self.type = 1
-        elif cnt == (4, 1):         self.type = 2
-        elif cnt == (3,2):          self.type = 3
-        elif cnt == (3, 1, 1):      self.type = 4
-        elif cnt == (2, 2, 1):      self.type = 5
-        elif cnt == (2, 1, 1, 1):   self.type = 6
-        else:                       self.type = 7
+        self.type = cnt_to_type[cnt]
 
 class Hand2(HandBase):
     def __init__(self, cards: str, bid: str):
         self.cards_main = cards
         self.cards = tuple(mapper2[c] for c in cards.strip())
-        self.type = None
         self.bid = int(bid.strip())
 
         cnt = [0] * 20
@@ -76,14 +77,7 @@ class Hand2(HandBase):
         if cj > 0:
             cnt[0] += cj
         cnt = tuple([count for count in cnt if count != 0])
-
-        if cnt == (5,):             self.type = 1
-        elif cnt == (4, 1):         self.type = 2
-        elif cnt == (3,2):          self.type = 3
-        elif cnt == (3, 1, 1):      self.type = 4
-        elif cnt == (2, 2, 1):      self.type = 5
-        elif cnt == (2, 1, 1, 1):   self.type = 6
-        else:                       self.type = 7
+        self.type = cnt_to_type[cnt]
 
 
 hands = []
