@@ -1,7 +1,6 @@
 import sys
 
-template = """
-import sys
+template = """import sys
 
 DEBUG = sys.gettrace() is not None
 input_file = "inputs/test.txt" if DEBUG else "#INPUT_FILE_NAME#"
