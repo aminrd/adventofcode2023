@@ -6,9 +6,12 @@ with open(input_file) as f:
     lines = f.readlines()
 lines = [line.strip() for line in lines]
 
+M, N = len(lines), len(lines[0])
 
-def valid_index(x, y, m, n):
-    return 0 <= x < m and 0 <= y < n
+
+def valid_index(x, y):
+    return 0 <= x < M and 0 <= y < N
+
 
 class Node:
     def __init__(self, i, j):
@@ -20,11 +23,11 @@ class Node:
         if (i, j) not in self.adjs:
             self.adjs.append((i, j))
 
-    def validate(self, m, n):
+    def validate(self):
         if self.index is None:
             raise Exception("Index is None")
 
-        return valid_index(self.index[0], self.index[1], m, n) and self.adjs is not None and len(self.adjs) <= 2
+        return valid_index(self.index[0], self.index[1]) and self.adjs is not None and len(self.adjs) <= 2
 
     def __repr__(self):
         return f"Node at {self.index}, adj = {self.adjs}"
@@ -36,19 +39,16 @@ class Node:
 class Graph:
     def __init__(self, lines):
         self.start = None
-        m, n = len(lines), len(lines[0])
-        self.m = m
-        self.n = n
 
         self.graph = []
-        for i in range(m):
-            self.graph.append([Node(i, j) for j in range(n)])
+        for i in range(M):
+            self.graph.append([Node(i, j) for j in range(N)])
 
         def connect(n1, n2):
             i1, j1 = n1
             i2, j2 = n2
 
-            if valid_index(i1, j1, m, n) and valid_index(i2, j2, m, n):
+            if valid_index(i1, j1) and valid_index(i2, j2):
                 self.graph[i1][j1].add_adj(i2, j2)
 
                 if (i2, j2) == self.start:
@@ -90,7 +90,7 @@ class Graph:
     def validate(self):
         for row in self.graph:
             for node in row:
-                if not node.validate(self.m, self.n):
+                if not node.validate():
                     raise Exception(f"Not valid! {node}")
 
     def traverse(self):
@@ -131,5 +131,30 @@ if DEBUG:
 part_one = far_node.dist
 print(f"Part one = {part_one}")
 
-part_two = None
+
+directions = ((-1, 0), (1, 0), (0, 1), (0, -1))
+outsides = set()
+for i in range(-1, M+1):
+    outsides.add((i, 0))
+    outsides.add((i, N))
+
+for j in range(-1, N+1):
+    outsides.add((0, j))
+    outsides.add((M, j))
+
+queue = list(outsides)
+while len(queue) > 0:
+    i, j = queue.pop(0)
+    for di, dj in directions:
+        ai, aj = i+di, j+dj
+        if valid_index(ai, aj) and (ai, aj) not in outsides and G.graph[ai][aj].dist is None:
+            outsides.add((ai, aj))
+            queue.append((ai, aj))
+
+part_two = 0
+for i in range(M):
+    for j in range(N):
+        if (i, j) not in outsides and G.graph[i][j].dist is None:
+            part_two += 1
+
 print(f"Part two = {part_two}")
